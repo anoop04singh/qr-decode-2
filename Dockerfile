@@ -6,18 +6,21 @@ RUN apt-get update && \
     apt-get install -y libzbar0 && \
     rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Create a symlink so that pyzbar finds the library at /usr/lib/libzbar.so
+RUN ln -s /usr/lib/x86_64-linux-gnu/libzbar.so /usr/lib/libzbar.so
+
+# Set the working directory in the container
 WORKDIR /app
 
 # Copy the requirements file and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of your application code (assumed to be in the api folder)
-COPY api/ ./api/
+# Copy the rest of the application code
+COPY . .
 
-# Expose the port (Vercel will pass the PORT env variable)
+# Expose port 5000 (Vercel will map the correct PORT env variable)
 EXPOSE 5000
 
-# Start the Flask app with Gunicorn, pointing to the app callable in api/index.py
+# Start the Flask app with Gunicorn
 CMD ["gunicorn", "api.index:app", "--bind", "0.0.0.0:$PORT"]
